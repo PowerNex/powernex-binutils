@@ -11,12 +11,6 @@ pipeline {
 		GDB_VERSION = 'gdb-7.11'
 	}
 	stages {
-		stage('dependencies') {
-			steps {
-				sh 'pacman -S --noconfirm curl git'
-			}
-		}
-
 		stage('fetch') {
 			steps {
 				sh 'curl -s http://ftp.gnu.org/gnu/binutils/${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z'
