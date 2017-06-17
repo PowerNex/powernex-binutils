@@ -7,8 +7,8 @@ pipeline {
 	environment {
 		TARGET = 'x86_64-powernex'
 		PREFIX = '/opt/cc'
-		BINUTILS_VERSION = 'binutils-2.26.1'
-		GDB_VERSION = 'gdb-7.11'
+		BINUTILS_VERSION = 'binutils-2.28'
+		GDB_VERSION = 'gdb-8.0'
 	}
 	stages {
 		stage('fetch') {
