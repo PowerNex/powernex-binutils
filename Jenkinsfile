@@ -2,8 +2,6 @@ pipeline {
 	agent {
 		docker {
 			image 'wild/archlinux-dlang'
-
-			args '-v ${WORKSPACE}:/workspace:ro'
 		}
 	}
 	environment {
@@ -24,8 +22,8 @@ pipeline {
 				sh 'curl -s http://ftp.gnu.org/gnu/binutils/${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z'
 				sh 'curl -s http://ftp.gnu.org/gnu/gdb/${GDB_VERSION}.tar.gz | tar x --no-same-owner -zv'
 
-				sh 'patch -p0 -i - </workspace/${BINUTILS_VERSION}.patch'
-				sh 'patch -p0 -i - </workspace/${GDB_VERSION}.patch'
+				sh 'patch -p0 -i - <${BINUTILS_VERSION}.patch'
+				sh 'patch -p0 -i - <${GDB_VERSION}.patch'
 			}
 		}
 
