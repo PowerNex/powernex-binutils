@@ -13,25 +13,30 @@ pipeline {
 	stages {
 		stage('fetch') {
 			steps {
-				sh 'curl -s http://ftp.gnu.org/gnu/binutils/${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z'
-				sh 'curl -s http://ftp.gnu.org/gnu/gdb/${GDB_VERSION}.tar.gz | tar x --no-same-owner -zv'
+				sh '''
 
-				sh 'patch -p0 -i - <${BINUTILS_VERSION}.patch'
-				sh 'patch -p0 -i - <${GDB_VERSION}.patch'
+				rm -rf ${BINUTILS_VERSION} ${GDB_VERSION} binutils-build gdb-build || true
+
+				curl -s http://ftp.gnu.org/gnu/binutils/${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z
+				curl -s http://ftp.gnu.org/gnu/gdb/${GDB_VERSION}.tar.gz | tar x --no-same-owner -zv
+
+				patch -p0 -i - <${BINUTILS_VERSION}.patch
+				patch -p0 -i - <${GDB_VERSION}.patch
+				'''
 			}
 		}
 
 		stage('build-binutils') {
 			steps {
 				sh '''
-				mkdir binutils-build
+				mkdir binutils-build || true
 				pushd binutils-build
 				../${BINUTILS_VERSION}/configure --enable-gold --enable-plugins --target=${TARGET} --prefix="${PREFIX}" --with-sysroot --disable-nls --disable-werror
 				make -j
 				make install -j
 				popd
 
-				rm -rf ${BINUTILS_VERSION} binutils-build
+				rm -rf ${BINUTILS_VERSION} binutils-build || true
 				'''
 			}
 		}
@@ -39,14 +44,14 @@ pipeline {
 		stage('build-gdb') {
 			steps {
 				sh '''
-				mkdir gdb-build
+				mkdir gdb-build || true
 				pushd gdb-build
 				../${GDB_VERSION}/configure --prefix="${PREFIX}" --disable-nls
 				make -j
 				make install -j
 				popd
 
-				rm -rf ${GDB_VERSION} gdb-build
+				rm -rf ${GDB_VERSION} gdb-build || true
 				'''
 			}
 		}
@@ -61,5 +66,4 @@ pipeline {
 			}
 		}
 	}
-
 }
