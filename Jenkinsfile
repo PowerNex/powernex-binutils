@@ -91,8 +91,10 @@ pipeline {
 				}
 				ansiColor('xterm') {
 					sh '''
-					cd ${PREFIX}
+					pushd ${PREFIX}
 					tar cvfJ powernex-binutils.tar.xz *
+					popd
+					mv ${PREFIX}/powernex-binutils.tar.xz .
 					'''
 					archiveArtifacts artifacts: 'powernex-binutils.tar.xz', fingerprint: true
 				}
