@@ -1,9 +1,5 @@
 pipeline {
-	agent {
-		docker {
-			image 'wild/archlinux-dlang'
-		}
-	}
+	agent { dockerfile true }
 	environment {
 		TARGET = 'x86_64-powernex'
 		PREFIX = '/opt/cc'
@@ -31,7 +27,14 @@ pipeline {
 				sh '''
 				mkdir binutils-build || true
 				pushd binutils-build
-				../${BINUTILS_VERSION}/configure --enable-gold --enable-plugins --target=${TARGET} --prefix="${PREFIX}" --with-sysroot --disable-nls --disable-werror
+				../${BINUTILS_VERSION}/configure \
+					--enable-gold \
+					--enable-plugins \
+					--target=${TARGET} \
+					--prefix="${PREFIX}" \
+					--with-sysroot \
+					--disable-nls \
+					--disable-werror
 				make -j
 				make install -j
 				popd
@@ -46,7 +49,13 @@ pipeline {
 				sh '''
 				mkdir gdb-build || true
 				pushd gdb-build
-				../${GDB_VERSION}/configure --prefix="${PREFIX}" --disable-nls
+				../${GDB_VERSION}/configure \
+					--prefix="${PREFIX}" \
+					--disable-nls \
+					--with-system-readline \
+    			--with-python=/usr/bin/python3 \
+    			--with-guile=guile-2.0 \
+					--disable-werror
 				make -j
 				make install -j
 				popd
