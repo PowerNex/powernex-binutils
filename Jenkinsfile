@@ -3,8 +3,6 @@ pipeline {
 	environment {
 		TARGET = 'x86_64-powernex'
 		PREFIX = '/opt/cc'
-		BINUTILS_VERSION = 'binutils-2.28'
-		GDB_VERSION = 'gdb-8.0'
 	}
 	stages {
 		stage('fetch') {
@@ -14,15 +12,18 @@ pipeline {
 						setGitHubPullRequestStatus state: 'PENDING', context: "${env.JOB_NAME}", message: "Fetching dependencies"
 				}
 				ansiColor('xterm') {
-					sh '''
+					sh '''#!/bin/bash
+					set -xeuo pipefail
+					BINUTILS_VERSION=$(cat BINUTILS_VERSION)
+					GDB_VERSION=$(cat GDB_VERSION)
 
-					rm -rf ${BINUTILS_VERSION} ${GDB_VERSION} binutils-build gdb-build || true
+					rm -rf binutils-${BINUTILS_VERSION} gdb-${GDB_VERSION} binutils-build gdb-build || true
 
-					curl -s http://ftp.gnu.org/gnu/binutils/${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z
-					curl -s http://ftp.gnu.org/gnu/gdb/${GDB_VERSION}.tar.gz | tar x --no-same-owner -zv
+					curl -s http://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VERSION}.tar.gz | tar x --no-same-owner -z
+					curl -s http://ftp.gnu.org/gnu/gdb/gdb-${GDB_VERSION}.tar.gz | tar x --no-same-owner -zv
 
-					patch -p0 -i - <${BINUTILS_VERSION}.patch
-					patch -p0 -i - <${GDB_VERSION}.patch
+					patch -p0 -i - <binutils-${BINUTILS_VERSION}.patch
+					patch -p0 -i - <gdb-${GDB_VERSION}.patch
 					'''
 				}
 			}
@@ -35,10 +36,13 @@ pipeline {
 						setGitHubPullRequestStatus state: 'PENDING', context: "${env.JOB_NAME}", message: "Building binutils"
 				}
 				ansiColor('xterm') {
-					sh '''
-					mkdir binutils-build || true
+					sh '''#!/bin/bash
+					set -xeuo pipefail
+					BINUTILS_VERSION=$(cat BINUTILS_VERSION)
+
+					mkdir binutils-build
 					pushd binutils-build
-					../${BINUTILS_VERSION}/configure \
+					../binutils-${BINUTILS_VERSION}/configure \
 						--enable-gold \
 						--enable-plugins \
 						--target=${TARGET} \
@@ -50,7 +54,7 @@ pipeline {
 					make install -j
 					popd
 
-					rm -rf ${BINUTILS_VERSION} binutils-build || true
+					rm -rf binutils-${BINUTILS_VERSION} binutils-build
 					'''
 				}
 			}
@@ -63,10 +67,13 @@ pipeline {
 						setGitHubPullRequestStatus state: 'PENDING', context: "${env.JOB_NAME}", message: "Building gdb"
 				}
 				ansiColor('xterm') {
-					sh '''
-					mkdir gdb-build || true
+					sh '''#!/bin/bash
+					set -xeuo pipefail
+					GDB_VERSION=$(cat GDB_VERSION)
+
+					mkdir gdb-build
 					pushd gdb-build
-					../${GDB_VERSION}/configure \
+					../gdb-${GDB_VERSION}/configure \
 						--prefix="${PREFIX}" \
 						--disable-nls \
 						--with-system-readline \
@@ -77,7 +84,7 @@ pipeline {
 					make install -j
 					popd
 
-					rm -rf ${GDB_VERSION} gdb-build || true
+					rm -rf gdb-${GDB_VERSION} gdb-build
 					'''
 				}
 			}
@@ -87,10 +94,12 @@ pipeline {
 			steps {
 				script {
 					if (env.JOB_NAME.endsWith("_pull-requests"))
-						setGitHubPullRequestStatus state: 'PENDING', context: "${env.JOB_NAME}", message: "Archiving binutils & gdb"
+						setGitHubPullRequestStatus state: 'PENDING', context: "${env.JOB_NAME}", message: "Archiving binutils and gdb"
 				}
 				ansiColor('xterm') {
-					sh '''
+					sh '''#!/bin/bash
+					set -xeuo pipefail
+
 					pushd ${PREFIX}
 					tar cvfJ powernex-binutils.tar.xz *
 					popd
